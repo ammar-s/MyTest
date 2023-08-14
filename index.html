@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Fill Form</title>
+</head>
+<body>
+    <h1>Fill PDF Form Example</h1>
+
+    <form id="pdfForm">
+		<label for="pdfFile">PDF Form Template:</label>
+		<input type="file" id="pdfFile" accept=".pdf">
+	
+        <input type="button" value="Fill PDF" onclick="fillPDF()">
+    </form>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
+
+
+ <script>
+async function fillPDF() {
+    const { PDFDocument, StandardFonts, rgb } = PDFLib;
+
+    // Fetch the PDF form that you want to fill.
+
+    const fileInput = document.getElementById("pdfFile");
+	const file = fileInput.files[0];
+	const pdfData = await file.arrayBuffer();
+	const pdfDoc = await PDFDocument.load(pdfData);
+    const form = pdfDoc.getForm();
+
+    // Get values from HTML form
+	const urlParams = new URLSearchParams(window.location.search);
+    const customer = urlParams.get('Customer');
+	const design = urlParams.get('Design');
+
+// Assuming that the fields in your PDF are named 'Customer' and 'Design'
+    const customerField = form.getTextField('Customer');
+    const designField = form.getTextField('Design');
+
+
+    // Fill the fields
+    customerField.setText(customer);
+    designField.setText(design);
+  
+    // Flatten the form so its fields will no longer be editable
+    form.flatten();
+  
+    // Serialize the PDFDocument to bytes (a Uint8Array)
+    const pdfBytes = await pdfDoc.save();
+    
+    // Generate a Blob from the PDF bytes
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    
+    // Create a link element
+    const link = document.createElement('a');
+    
+    // Set the link's href to a URL created from the Blob
+    link.href = URL.createObjectURL(blob);
+    
+    // Automatically start downloading the PDF
+    link.download = 'filled_form.pdf';
+    link.click();
+}
+</script>
+</body>
+</html>
